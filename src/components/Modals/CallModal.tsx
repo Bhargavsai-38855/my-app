@@ -50,7 +50,7 @@ export const CallModal: React.FC<CallModalProps> = ({ chat, onEndCall }) => {
 
         <h3 className="text-xl font-bold text-white mb-1">{chat.title}</h3>
         <p className="text-xs text-[#3390ec] font-semibold mb-2">
-          Telegram End-to-End Encrypted Call
+          Pigeon End-to-End Encrypted Call
         </p>
         <p className="text-sm font-mono text-slate-400 mb-8 tabular-nums">
           {formatTimer(callDuration)}

@@ -10,6 +10,7 @@ import {
   UserCheck,
   HelpCircle,
   X,
+  LogOut,
 } from 'lucide-react';
 
 interface NavigationDrawerProps {
@@ -21,6 +22,7 @@ interface NavigationDrawerProps {
   onSelectSavedMessages: () => void;
   onOpenSettings: () => void;
   onOpenNewChat: () => void;
+  onLogout: () => void;
 }
 
 export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
@@ -32,6 +34,7 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
   onSelectSavedMessages,
   onOpenSettings,
   onOpenNewChat,
+  onLogout,
 }) => {
   if (!isOpen) return null;
 
@@ -50,11 +53,18 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
         {/* User profile header */}
         <div className="p-4 bg-gradient-to-b from-[#3390ec]/15 to-transparent border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between mb-3">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-[#242f3d] shadow-sm"
-            />
+            <div className="flex items-center gap-2">
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-[#242f3d] shadow-sm"
+              />
+              <img
+                src="/assets/aistudio/pigeon-192_861273e6.png"
+                alt="Pigeon Logo"
+                className="w-7 h-7 object-contain ml-1"
+              />
+            </div>
             <button
               onClick={onClose}
               aria-label="Close menu"
@@ -167,13 +177,26 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
             className="w-full px-4 py-3 flex items-center gap-4 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#202b36] transition-colors text-left"
           >
             <HelpCircle className="w-5 h-5 text-slate-400" />
-            <span className="font-medium">Telegram Features</span>
+            <span className="font-medium">Pigeon Features</span>
+          </button>
+
+          {/* Log Out button */}
+          <button
+            onClick={() => {
+              onClose();
+              onLogout();
+            }}
+            className="w-full px-4 py-3 flex items-center gap-4 text-sm text-rose-500 hover:bg-rose-500/10 transition-colors text-left font-medium"
+          >
+            <LogOut className="w-5 h-5 text-rose-500" />
+            <span>Log Out</span>
           </button>
         </div>
 
         {/* Footer version */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-500">
-          Telegram Web K · 10.9.0
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 dark:text-slate-500 flex items-center justify-between">
+          <span>Pigeon Web · 10.9.0</span>
+          <img src="/assets/aistudio/pigeon-192_861273e6.png" alt="Pigeon" className="w-4 h-4 object-contain opacity-60" />
         </div>
       </div>
     </div>

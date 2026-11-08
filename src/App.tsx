@@ -32,8 +32,19 @@ import { ChatInfoDrawer } from './components/RightDrawer/ChatInfoDrawer';
 import { CallModal } from './components/Modals/CallModal';
 import { SettingsModal } from './components/Modals/SettingsModal';
 import { NewChatModal } from './components/Modals/NewChatModal';
+import { LoginScreen } from './components/Auth/LoginScreen';
 
 export default function App() {
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('autostart') === '1') return true;
+      return localStorage.getItem('tg_auth') === 'true';
+    }
+    return false;
+  });
+
   // Persistence state
   const [chats, setChats] = useState<Chat[]>(() => {
     const saved = localStorage.getItem('tg_chats');
@@ -254,7 +265,8 @@ export default function App() {
           id: `bot-reply-${Date.now()}`,
           chatId: activeChat.id,
           senderId: 'bot',
-          senderName: 'Telegram Assistant Bot',
+          senderName: 'Pigeon Assistant Bot',
+          senderAvatar: '/assets/aistudio/pigeon-192_861273e6.png',
           text: botResult.response,
           timestamp: Date.now(),
           isOutgoing: false,
@@ -417,6 +429,32 @@ export default function App() {
     }));
     setIsMobileChatOpen(true);
   };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('tg_auth');
+    setIsNavDrawerOpen(false);
+    setIsSettingsOpen(false);
+    setIsCallActive(false);
+  };
+
+  // If not authenticated, render Telegram Login Screen
+  if (!isAuthenticated) {
+    return (
+      <LoginScreen
+        onLogin={(user) => {
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+          localStorage.setItem('tg_auth', 'true');
+        }}
+        theme={theme}
+        onToggleTheme={() =>
+          setTheme((prev) => (prev === 'dark' ? 'day' : 'dark'))
+        }
+        defaultUser={currentUser}
+      />
+    );
+  }
 
   // Color theme classes mapping
   const themeContainerBg =
@@ -598,6 +636,7 @@ export default function App() {
         onSelectSavedMessages={() => handleSelectChat('chat-saved')}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenNewChat={() => setIsNewChatOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* MODALS */}
@@ -623,6 +662,7 @@ export default function App() {
         onChangeFontSize={setFontSize}
         soundEnabled={soundEnabled}
         onToggleSound={setSoundEnabled}
+        onLogout={handleLogout}
       />
 
       <NewChatModal

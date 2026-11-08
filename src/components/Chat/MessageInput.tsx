@@ -188,7 +188,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                   onClick={() => {
                     onSendMessage('Project_Specification_v2.pdf', {
                       type: 'file',
-                      fileName: 'Telegram_Architecture_Doc.pdf',
+                      fileName: 'Pigeon_Architecture_Doc.pdf',
                     });
                     setShowAttachMenu(false);
                   }}

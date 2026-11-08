@@ -93,7 +93,7 @@ test('calculateUnreadTotals calculates folder counts accurately', () => {
 
 test('processBotCommand responds to /start and /help', () => {
   const startRes = processBotCommand('/start');
-  assert.ok(startRes.response.includes('Telegram Assistant Bot'));
+  assert.ok(startRes.response.includes('Pigeon Assistant Bot'));
 
   const helpRes = processBotCommand('/help');
   assert.ok(helpRes.response.includes('Available Bot Commands'));

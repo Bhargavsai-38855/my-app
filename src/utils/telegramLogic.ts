@@ -111,13 +111,13 @@ export function processBotCommand(
     case '/start':
       return {
         response:
-          "👋 Hello! I am your interactive Telegram Assistant Bot.\n\nHere are some things I can do:\n• /help - View available commands\n• /roll - Roll a dice or coin\n• /crypto - Live simulated crypto prices (TON, BTC, ETH, SOL)\n• /calc <expr> - Calculate math (e.g. /calc 25 * 40)\n• /quote - Get an inspiring tech quote\n• /fact - Get a fun fact about Telegram\n\nYou can also just send me any message, question, or thought!",
+          "👋 Hello! I am your interactive Pigeon Assistant Bot.\n\nHere are some things I can do:\n• /help - View available commands\n• /roll - Roll a dice or coin\n• /crypto - Live simulated crypto prices (TON, BTC, ETH, SOL)\n• /calc <expr> - Calculate math (e.g. /calc 25 * 40)\n• /quote - Get an inspiring tech quote\n• /fact - Get a fun fact about Pigeon messenger\n\nYou can also just send me any message, question, or thought!",
       };
 
     case '/help':
       return {
         response:
-          "🛠 Available Bot Commands:\n\n• /roll - Roll a dice (1-6) or coin flip\n• /crypto - Live TON & crypto price quotes\n• /calc <expr> - Evaluate math expression\n• /quote - Inspirational tech quote\n• /fact - Telegram history & facts\n• /clear - Clear your bot chat history",
+          "🛠 Available Bot Commands:\n\n• /roll - Roll a dice (1-6) or coin flip\n• /crypto - Live TON & crypto price quotes\n• /calc <expr> - Evaluate math expression\n• /quote - Inspirational tech quote\n• /fact - Pigeon history & fun facts\n• /clear - Clear your bot chat history",
       };
 
     case '/roll': {
@@ -132,7 +132,7 @@ export function processBotCommand(
     case '/crypto':
       return {
         response:
-          "💎 Live Market Snapshot:\n\n• TON: $5.84 (+4.2%) 🚀\n• BTC: $91,420 (+2.8%)\n• ETH: $3,450 (+1.9%)\n• SOL: $198.50 (+5.1%)\n\n24h Vol: $48.2B · Telegram Wallet active",
+          "💎 Live Market Snapshot:\n\n• TON: $5.84 (+4.2%) 🚀\n• BTC: $91,420 (+2.8%)\n• ETH: $3,450 (+1.9%)\n• SOL: $198.50 (+5.1%)\n\n24h Vol: $48.2B · Pigeon Wallet active",
       };
 
     case '/calc': {
@@ -165,10 +165,10 @@ export function processBotCommand(
 
     case '/fact': {
       const facts = [
-        "Telegram was launched on August 14, 2013, by brothers Nikolai and Pavel Durov.",
-        "Telegram's custom MTProto protocol was designed by mathematician Nikolai Durov.",
-        "Telegram handles over 1 billion monthly active users with incredible speed and zero ads in private chats.",
-        "Telegram was among the first messengers to introduce animated stickers, bots, and channels.",
+        "Pigeon was inspired by the ancient art of carrier pigeons, transformed into modern instant encrypted messaging.",
+        "Pigeon handles blazing fast real-time communications with lightweight, zero-latency protocols.",
+        "Pigeon delivers messages securely across all devices with instant sync and offline draft caching.",
+        "Pigeon combines playful animated stickers, interactive bots, and channels in one sleek client.",
       ];
       const randomFact = facts[Math.floor(Math.random() * facts.length)];
       return { response: `💡 Did you know?\n${randomFact}` };
@@ -177,7 +177,7 @@ export function processBotCommand(
     default: {
       const conversationalReplies = [
         `Got your message: "${trimmed}"! Let me know if you need any assistance or try /help.`,
-        `Thanks for reaching out! I'm synchronized with your Telegram cloud session.`,
+        `Thanks for reaching out! I'm synchronized with your Pigeon cloud session.`,
         `Received! If you want to check crypto prices, type /crypto or /roll for a lucky dice.`,
       ];
       return {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile, ThemeMode } from '../../types/telegram';
-import { X, Moon, Sun, Volume2, Type, Check, Sparkles } from 'lucide-react';
+import { X, Moon, Sun, Volume2, Type, Check, Sparkles, LogOut } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ interface SettingsModalProps {
   onChangeFontSize: (size: number) => void;
   soundEnabled: boolean;
   onToggleSound: (enabled: boolean) => void;
+  onLogout?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -30,6 +31,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeFontSize,
   soundEnabled,
   onToggleSound,
+  onLogout,
 }) => {
   if (!isOpen) return null;
 
@@ -46,7 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const themes: { id: ThemeMode; name: string; bg: string; accent: string }[] = [
-    { id: 'dark', name: 'Telegram Dark', bg: 'bg-[#0e1621]', accent: 'border-[#3390ec]' },
+    { id: 'dark', name: 'Pigeon Dark', bg: 'bg-[#0e1621]', accent: 'border-[#3390ec]' },
     { id: 'night-blue', name: 'Night Blue', bg: 'bg-[#101921]', accent: 'border-[#64b5f6]' },
     { id: 'day', name: 'Classic Day', bg: 'bg-white', accent: 'border-[#3390ec]' },
     { id: 'arctic', name: 'Arctic Slate', bg: 'bg-slate-100', accent: 'border-cyan-500' },
@@ -166,7 +168,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <Sparkles className="w-4 h-4 text-[#3390ec]" />
               <div>
                 <p className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                  Telegram Doodle Wallpaper
+                  Pigeon Doodle Wallpaper
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   Aesthetic paper planes background pattern
@@ -236,6 +238,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </button>
           </div>
+
+          {/* Log Out button */}
+          {onLogout && (
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onLogout();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out of Pigeon</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
