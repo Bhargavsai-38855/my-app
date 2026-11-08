@@ -1,0 +1,6 @@
+{
+  "name": "Telegram Web",
+  "description": "Fast and secure messaging app with channels, groups, bots, voice notes, stickers, reactions, and custom themes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

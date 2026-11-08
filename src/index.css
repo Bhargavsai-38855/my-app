@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom telegram style scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 150, 165, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 150, 165, 0.5);
+}
+
+/* Telegram patterned background */
+.telegram-pattern-bg {
+  background-size: 400px;
+  background-repeat: repeat;
+}
+
+/* Custom animation for message sending & typing */
+@keyframes telegramPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop-in {
+  animation: telegramPop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Audio waveform bars animation */
+@keyframes waveBounce {
+  0%, 100% { height: 25%; }
+  50% { height: 100%; }
+}
+
+.wave-bar-active {
+  animation: waveBounce 0.8s ease-in-out infinite;
+}
