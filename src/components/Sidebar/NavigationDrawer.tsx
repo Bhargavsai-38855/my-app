@@ -11,6 +11,7 @@ import {
   HelpCircle,
   X,
   LogOut,
+  Trash2,
 } from 'lucide-react';
 
 interface NavigationDrawerProps {
@@ -22,6 +23,7 @@ interface NavigationDrawerProps {
   onSelectSavedMessages: () => void;
   onOpenSettings: () => void;
   onOpenNewChat: () => void;
+  onClearAllChats?: () => void;
   onLogout: () => void;
 }
 
@@ -34,6 +36,7 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
   onSelectSavedMessages,
   onOpenSettings,
   onOpenNewChat,
+  onClearAllChats,
   onLogout,
 }) => {
   if (!isOpen) return null;
@@ -77,9 +80,15 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
           <h3 className="font-bold text-base text-slate-900 dark:text-white leading-tight">
             {currentUser.name}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {currentUser.phone}
-          </p>
+          {currentUser.email ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {currentUser.email}
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {currentUser.phone}
+            </p>
+          )}
           <p className="text-xs text-[#3390ec] font-mono mt-0.5">
             @{currentUser.username}
           </p>
@@ -170,9 +179,23 @@ export const NavigationDrawer: React.FC<NavigationDrawerProps> = ({
             </div>
           </button>
 
+          {onClearAllChats && (
+            <button
+              onClick={() => {
+                onClearAllChats();
+                onClose();
+              }}
+              className="w-full px-4 py-3 flex items-center gap-4 text-sm text-rose-500 hover:bg-rose-500/10 transition-colors text-left font-medium"
+            >
+              <Trash2 className="w-5 h-5 text-rose-500" />
+              <span>Clear All Chats</span>
+            </button>
+          )}
+
           <button
             onClick={() => {
-              window.open('https://telegram.org/faq', '_blank', 'noopener,noreferrer');
+              onOpenSettings();
+              onClose();
             }}
             className="w-full px-4 py-3 flex items-center gap-4 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#202b36] transition-colors text-left"
           >

@@ -43,6 +43,22 @@ export function validateDisplayName(name: string): { valid: boolean; error?: str
 }
 
 /**
+ * Validate email address format
+ */
+export function validateEmail(email: string): { valid: boolean; error?: string } {
+  const clean = email.trim();
+  if (!clean) {
+    return { valid: false, error: 'Email address is required' };
+  }
+  // Standard permissive email regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(clean)) {
+    return { valid: false, error: 'Please enter a valid email address (e.g. name@domain.com)' };
+  }
+  return { valid: true };
+}
+
+/**
  * Format username with @ prefix
  */
 export function formatUsernameHandle(input: string): string {

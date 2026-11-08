@@ -45,15 +45,41 @@ export default function App() {
     return false;
   });
 
-  // Persistence state
+  // Persistence state - clean slate without demo messages, subscribers, or mock members
   const [chats, setChats] = useState<Chat[]>(() => {
-    const saved = localStorage.getItem('tg_chats');
-    return saved ? JSON.parse(saved) : defaultChats;
+    const demoChatIds = new Set(['chat-elena', 'chat-devs', 'chat-ton', 'chat-alex', 'chat-pavel']);
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tg_chats');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as Chat[];
+          const cleaned = parsed.filter((c) => !demoChatIds.has(c.id));
+          return cleaned.length > 0 ? cleaned : defaultChats;
+        } catch {
+          return defaultChats;
+        }
+      }
+    }
+    return defaultChats;
   });
 
   const [messages, setMessages] = useState<Record<string, Message[]>>(() => {
-    const saved = localStorage.getItem('tg_messages');
-    return saved ? JSON.parse(saved) : defaultMessages;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tg_messages');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const demoChatIds = ['chat-elena', 'chat-devs', 'chat-ton', 'chat-alex', 'chat-pavel'];
+          for (const id of demoChatIds) {
+            delete parsed[id];
+          }
+          return parsed;
+        } catch {
+          return {};
+        }
+      }
+    }
+    return {};
   });
 
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
@@ -82,7 +108,7 @@ export default function App() {
   });
 
   // UI state
-  const [activeChatId, setActiveChatId] = useState<string>('chat-pavel');
+  const [activeChatId, setActiveChatId] = useState<string>('chat-saved');
   const [activeFolder, setActiveFolder] = useState<FolderTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInChatQuery, setSearchInChatQuery] = useState('');
@@ -409,6 +435,45 @@ export default function App() {
     );
   };
 
+  const handleClearChat = (chatId: string) => {
+    setMessages((prev) => ({
+      ...prev,
+      [chatId]: [],
+    }));
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === chatId ? { ...c, lastMessage: undefined, unreadCount: 0 } : c
+      )
+    );
+  };
+
+  const handleClearAllChats = () => {
+    setMessages({});
+    setChats((prev) =>
+      prev.map((c) => ({
+        ...c,
+        lastMessage: undefined,
+        unreadCount: 0,
+      }))
+    );
+    localStorage.removeItem('tg_messages');
+  };
+
+  const handleDeleteChat = (chatId: string) => {
+    setChats((prev) => {
+      const remaining = prev.filter((c) => c.id !== chatId);
+      if (activeChatId === chatId) {
+        setActiveChatId(remaining.length > 0 ? remaining[0].id : '');
+      }
+      return remaining;
+    });
+    setMessages((prev) => {
+      const copy = { ...prev };
+      delete copy[chatId];
+      return copy;
+    });
+  };
+
   const handleCreateChat = (newChat: Chat) => {
     setChats((prev) => [newChat, ...prev]);
     setActiveChatId(newChat.id);
@@ -512,6 +577,7 @@ export default function App() {
           chats={filteredChats}
           activeChatId={activeChatId}
           onSelectChat={handleSelectChat}
+          onDeleteChat={handleDeleteChat}
         />
       </div>
 
@@ -531,6 +597,9 @@ export default function App() {
               }
               onStartCall={() => setIsCallActive(true)}
               onToggleInfoDrawer={() => setIsInfoDrawerOpen(!isInfoDrawerOpen)}
+              onClearChat={() => handleClearChat(activeChat.id)}
+              onDeleteChat={() => handleDeleteChat(activeChat.id)}
+              onToggleMute={() => handleToggleMute(activeChat.id)}
               isTyping={isTyping}
             />
 
@@ -594,6 +663,7 @@ export default function App() {
                   onReact={handleReact}
                   onDeleteMessage={handleDeleteMessage}
                   onPinMessage={handlePinMessage}
+                  onSendStarter={(text) => handleSendMessage(text)}
                   searchFilter={searchInChatQuery}
                 />
 
@@ -621,6 +691,8 @@ export default function App() {
           isOpen={isInfoDrawerOpen}
           onClose={() => setIsInfoDrawerOpen(false)}
           onToggleMute={handleToggleMute}
+          onClearChat={handleClearChat}
+          onDeleteChat={handleDeleteChat}
         />
       )}
 
@@ -636,6 +708,7 @@ export default function App() {
         onSelectSavedMessages={() => handleSelectChat('chat-saved')}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenNewChat={() => setIsNewChatOpen(true)}
+        onClearAllChats={handleClearAllChats}
         onLogout={handleLogout}
       />
 
@@ -662,6 +735,7 @@ export default function App() {
         onChangeFontSize={setFontSize}
         soundEnabled={soundEnabled}
         onToggleSound={setSoundEnabled}
+        onClearAllChats={handleClearAllChats}
         onLogout={handleLogout}
       />
 

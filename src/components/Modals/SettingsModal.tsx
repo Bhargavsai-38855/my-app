@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserProfile, ThemeMode } from '../../types/telegram';
-import { X, Moon, Sun, Volume2, Type, Check, Sparkles, LogOut } from 'lucide-react';
+import { X, Moon, Sun, Volume2, Type, Check, Sparkles, LogOut, Trash2 } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,6 +15,7 @@ interface SettingsModalProps {
   onChangeFontSize: (size: number) => void;
   soundEnabled: boolean;
   onToggleSound: (enabled: boolean) => void;
+  onClearAllChats?: () => void;
   onLogout?: () => void;
 }
 
@@ -31,6 +32,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeFontSize,
   soundEnabled,
   onToggleSound,
+  onClearAllChats,
   onLogout,
 }) => {
   if (!isOpen) return null;
@@ -39,6 +41,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [username, setUsername] = useState(currentUser.username);
   const [bio, setBio] = useState(currentUser.bio);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearedSuccess, setClearedSuccess] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,6 +242,64 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </button>
           </div>
+
+          {/* Data & Storage / Clear Chats */}
+          {onClearAllChats && (
+            <div className="space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-[#202b36] border border-slate-200/50 dark:border-slate-700/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-xs text-slate-900 dark:text-slate-100">
+                    Chat Storage &amp; Messages
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Clear all conversation messages across all chats
+                  </p>
+                </div>
+              </div>
+
+              {clearedSuccess ? (
+                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-semibold text-center">
+                  ✓ All chat messages cleared!
+                </div>
+              ) : showClearConfirm ? (
+                <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-center space-y-2">
+                  <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                    Are you sure you want to clear all chat messages?
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClearAllChats();
+                        setShowClearConfirm(false);
+                        setClearedSuccess(true);
+                        setTimeout(() => setClearedSuccess(false), 2500);
+                      }}
+                      className="px-3 py-1 rounded-md bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700"
+                    >
+                      Yes, Clear All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowClearConfirm(false)}
+                      className="px-3 py-1 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowClearConfirm(true)}
+                  className="w-full py-2 px-3 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear All Chat Messages</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Log Out button */}
           {onLogout && (

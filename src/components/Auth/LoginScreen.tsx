@@ -4,6 +4,7 @@ import {
   validateUsername,
   validatePassword,
   validateDisplayName,
+  validateEmail,
   formatUsernameHandle,
 } from '../../utils/authLogic';
 import {
@@ -14,9 +15,10 @@ import {
   EyeOff,
   Sun,
   Moon,
-  Sparkles,
   ShieldCheck,
-  Check,
+  Mail,
+  User,
+  AtSign,
 } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -34,35 +36,30 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'qr'>('login');
 
-  // Sign In state
-  const [loginUsername, setLoginUsername] = useState('kirandhanu');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  // Sign In state - only Email and Password
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loginError, setLoginError] = useState('');
 
-  // Sign Up / Register state
+  // Sign Up / Register state - Name, Email, Username, Password (no avatar selector)
   const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
   const [regUsername, setRegUsername] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState('/assets/aistudio/pigeon-192_861273e6.png');
   const [regError, setRegError] = useState('');
 
   const isDarkMode = theme === 'dark' || theme === 'night-blue';
 
-  const avatarOptions = [
-    { label: 'Pigeon', url: '/assets/aistudio/pigeon-192_861273e6.png' },
-    { label: 'Tech Lead', url: '/src/assets/images/avatar_tech_lead_1794121257394.jpg' },
-    { label: 'Designer', url: '/src/assets/images/avatar_elena_designer_1794121256672.jpg' },
-    { label: 'Founder', url: '/src/assets/images/avatar_pavel_durov_1794121255770.jpg' },
-  ];
+  const defaultAvatar = '/assets/aistudio/pigeon-192_861273e6.png';
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const userValidation = validateUsername(loginUsername);
-    if (!userValidation.valid) {
-      setLoginError(userValidation.error || 'Invalid username');
+    const emailValidation = validateEmail(loginEmail);
+    if (!emailValidation.valid) {
+      setLoginError(emailValidation.error || 'Invalid email address');
       return;
     }
     const passValidation = validatePassword(loginPassword);
@@ -72,12 +69,51 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
 
     setLoginError('');
-    const cleanUsername = loginUsername.replace(/^@/, '').trim();
-    onLogin({
-      ...defaultUser,
+    const cleanEmail = loginEmail.trim().toLowerCase();
+
+    // Check if user exists in saved registered users
+    let registeredUsers: Record<string, { profile: UserProfile; pass: string }> = {};
+    try {
+      const saved = localStorage.getItem('pigeon_registered_users_v2');
+      if (saved) registeredUsers = JSON.parse(saved);
+    } catch {}
+
+    const existing = registeredUsers[cleanEmail];
+    if (existing) {
+      if (existing.pass !== loginPassword) {
+        setLoginError('Incorrect password for this account');
+        return;
+      }
+      onLogin(existing.profile);
+      return;
+    }
+
+    // Direct email login (create profile from email)
+    const emailPrefix = cleanEmail.split('@')[0] || 'user';
+    const cleanUsername = emailPrefix.replace(/[^a-zA-Z0-9_]/g, '') || 'user';
+    const displayName =
+      emailPrefix
+        .split(/[._-]/)
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ') || 'Pigeon User';
+
+    const user: UserProfile = {
+      id: `user_${cleanEmail.replace(/[^a-zA-Z0-9]/g, '_')}`,
+      name: displayName,
       username: cleanUsername,
-      name: cleanUsername === 'kirandhanu' ? defaultUser.name : cleanUsername,
-    });
+      email: cleanEmail,
+      phone: `@${cleanUsername}`,
+      bio: 'Pigeon user · Encrypted & private',
+      avatar: defaultAvatar,
+    };
+
+    // Save user profile
+    registeredUsers[cleanEmail] = { profile: user, pass: loginPassword };
+    registeredUsers[cleanUsername] = { profile: user, pass: loginPassword };
+    localStorage.setItem('pigeon_registered_users_v2', JSON.stringify(registeredUsers));
+
+    onLogin(user);
   };
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
@@ -85,6 +121,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const nameValidation = validateDisplayName(regName);
     if (!nameValidation.valid) {
       setRegError(nameValidation.error || 'Invalid display name');
+      return;
+    }
+    const emailValidation = validateEmail(regEmail);
+    if (!emailValidation.valid) {
+      setRegError(emailValidation.error || 'Invalid email address');
       return;
     }
     const userValidation = validateUsername(regUsername);
@@ -99,21 +140,29 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
 
     setRegError('');
-    const cleanUsername = regUsername.replace(/^@/, '').trim();
+    const cleanEmail = regEmail.trim().toLowerCase();
+    const cleanUsername = regUsername.replace(/^@/, '').trim().toLowerCase();
     const newUser: UserProfile = {
       id: `user_${Date.now()}`,
       name: regName.trim(),
       username: cleanUsername,
+      email: cleanEmail,
       phone: `@${cleanUsername}`,
-      bio: 'New Pigeon user · Ready to chat 🚀',
-      avatar: selectedAvatar,
+      bio: 'Pigeon user · Ready to chat 🚀',
+      avatar: defaultAvatar,
     };
 
-    onLogin(newUser);
-  };
+    // Save to registered accounts
+    try {
+      let registeredUsers: Record<string, { profile: UserProfile; pass: string }> = {};
+      const saved = localStorage.getItem('pigeon_registered_users_v2');
+      if (saved) registeredUsers = JSON.parse(saved);
+      registeredUsers[cleanEmail] = { profile: newUser, pass: regPassword };
+      registeredUsers[cleanUsername] = { profile: newUser, pass: regPassword };
+      localStorage.setItem('pigeon_registered_users_v2', JSON.stringify(registeredUsers));
+    } catch {}
 
-  const handleQuickDemo = () => {
-    onLogin(defaultUser);
+    onLogin(newUser);
   };
 
   return (
@@ -203,28 +252,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 Welcome to Pigeon
               </h1>
               <p className="text-xs text-slate-400">
-                Sign in with your username or password. No phone numbers needed.
+                Sign in with your email and password.
               </p>
             </div>
 
             <div className="space-y-4 mb-5">
-              {/* Username Input */}
+              {/* Email Address Input */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                  Username or Handle
+                  Email Address
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-mono">
-                    @
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Mail className="w-4 h-4" />
                   </span>
                   <input
-                    type="text"
+                    type="email"
                     required
                     autoFocus
-                    value={loginUsername}
-                    onChange={(e) => setLoginUsername(e.target.value)}
-                    placeholder="username"
-                    className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:border-[#3390ec] focus:ring-2 focus:ring-[#3390ec]/30 transition-all placeholder:text-slate-500"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-[#3390ec] focus:ring-2 focus:ring-[#3390ec]/30 transition-all placeholder:text-slate-500"
                   />
                 </div>
               </div>
@@ -274,20 +323,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-2.5 px-4 rounded-xl bg-[#3390ec] hover:bg-blue-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#3390ec]/25 transition-all active:scale-98 mb-3"
+              className="w-full py-2.5 px-4 rounded-xl bg-[#3390ec] hover:bg-blue-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#3390ec]/25 transition-all active:scale-98 mb-4"
             >
               <LogIn className="w-4 h-4" />
               <span>Log In to Pigeon</span>
-            </button>
-
-            {/* Quick Demo Sign In */}
-            <button
-              type="button"
-              onClick={handleQuickDemo}
-              className="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-[#3390ec] font-medium text-xs flex items-center justify-center gap-2 transition-colors mb-4"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>1-Click Demo Login (@kirandhanu)</span>
             </button>
 
             <div className="text-center text-xs text-slate-400">
@@ -314,31 +353,56 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 Create Your Account
               </h1>
               <p className="text-xs text-slate-400">
-                Choose a display name and username to start messaging instantly.
+                Enter your name, email, username, and password to start messaging.
               </p>
             </div>
 
             <div className="space-y-3.5 mb-5">
-              {/* Display Name */}
+              {/* 1. Name */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                  Full Name / Display Name
+                  Full Name
                 </label>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  placeholder="e.g. Alex Hunter"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-[#3390ec] focus:ring-2 focus:ring-[#3390ec]/30 transition-all placeholder:text-slate-500"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <User className="w-4 h-4" />
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="e.g. Alex Hunter"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-[#3390ec] focus:ring-2 focus:ring-[#3390ec]/30 transition-all placeholder:text-slate-500"
+                  />
+                </div>
               </div>
 
-              {/* Username */}
+              {/* 2. Email */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                  Choose Username
+                  Email Address
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                    <Mail className="w-4 h-4" />
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="alex@example.com"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-[#3390ec] focus:ring-2 focus:ring-[#3390ec]/30 transition-all placeholder:text-slate-500"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Username */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  Username
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-mono">
@@ -349,16 +413,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     required
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-                    placeholder="my_pigeon_handle"
+                    placeholder="alex_hunter"
                     className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:border-[#3390ec] focus:ring-2 focus:ring-[#3390ec]/30 transition-all placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
-              {/* Password */}
+              {/* 4. Password */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                  Create Password
+                  Password
                 </label>
                 <div className="relative">
                   <input
@@ -376,41 +440,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   >
                     {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
-                </div>
-              </div>
-
-              {/* Avatar Selector */}
-              <div>
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
-                  Select Profile Avatar
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {avatarOptions.map((av, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setSelectedAvatar(av.url)}
-                      className={`relative p-1 rounded-xl border flex flex-col items-center gap-1 transition-all ${
-                        selectedAvatar === av.url
-                          ? 'border-[#3390ec] bg-[#3390ec]/15 shadow-sm'
-                          : 'border-slate-700 hover:border-slate-500'
-                      }`}
-                    >
-                      <img
-                        src={av.url}
-                        alt={av.label}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <span className="text-[10px] text-slate-300 truncate max-w-full">
-                        {av.label}
-                      </span>
-                      {selectedAvatar === av.url && (
-                        <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-[#3390ec] text-white flex items-center justify-center text-[8px]">
-                          <Check className="w-2.5 h-2.5" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
                 </div>
               </div>
 
@@ -501,14 +530,27 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleQuickDemo}
-              className="w-full py-2.5 px-4 rounded-xl bg-[#3390ec] hover:bg-blue-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#3390ec]/25 transition-all active:scale-98"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Simulate QR Scan &amp; Log In</span>
-            </button>
+            <div className="w-full p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-left text-xs text-slate-300 space-y-1.5 mb-4">
+              <p className="font-semibold text-white flex items-center gap-1.5 text-xs">
+                <ShieldCheck className="w-4 h-4 text-[#3390ec]" /> Quick link instructions:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                <li>Open Pigeon on your mobile phone</li>
+                <li>Go to <span className="text-white font-medium">Settings &gt; Devices &gt; Link Desktop</span></li>
+                <li>Point your camera at this screen to log in</li>
+              </ol>
+            </div>
+
+            <div className="text-center text-xs text-slate-400">
+              Prefer username and password?{' '}
+              <button
+                type="button"
+                onClick={() => setActiveTab('login')}
+                className="text-[#3390ec] font-semibold hover:underline"
+              >
+                Sign In
+              </button>
+            </div>
           </div>
         )}
       </div>

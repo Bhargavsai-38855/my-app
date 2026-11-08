@@ -13,6 +13,8 @@ import {
   FileText,
   Download,
   Image as ImageIcon,
+  MessageSquare,
+  Sparkles,
 } from 'lucide-react';
 
 interface MessageListProps {
@@ -22,6 +24,7 @@ interface MessageListProps {
   onReact: (messageId: string, emoji: string) => void;
   onDeleteMessage: (messageId: string) => void;
   onPinMessage: (messageId: string) => void;
+  onSendStarter?: (text: string) => void;
   searchFilter?: string;
 }
 
@@ -32,6 +35,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   onReact,
   onDeleteMessage,
   onPinMessage,
+  onSendStarter,
   searchFilter = '',
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -57,7 +61,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-3 relative">
+    <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-3 relative flex flex-col">
       {/* Search match banner */}
       {searchFilter && (
         <div className="sticky top-2 z-10 mx-auto max-w-xs text-center py-1 px-3 rounded-full bg-slate-800/80 text-white text-xs backdrop-blur-md shadow-md">
@@ -65,12 +69,85 @@ export const MessageList: React.FC<MessageListProps> = ({
         </div>
       )}
 
+      {/* Empty Chat State */}
+      {filteredMessages.length === 0 && (
+        <div className="my-auto py-8 flex flex-col items-center justify-center text-center animate-pop-in">
+          <div className="w-20 h-20 rounded-3xl bg-white/90 dark:bg-slate-800/90 p-3 shadow-xl mb-4 border border-slate-200/50 dark:border-slate-700/60 flex items-center justify-center">
+            <img
+              src="/assets/aistudio/pigeon-192_861273e6.png"
+              alt="Pigeon"
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          <h3 className="text-base font-bold text-slate-800 dark:text-white mb-1">
+            No messages here yet...
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed mb-5">
+            {chat.type === 'bot'
+              ? 'Send /help or /crypto to interact with the Pigeon Bot.'
+              : `Send a message to start the conversation with ${chat.title}.`}
+          </p>
+
+          {/* Quick Conversation Starter Chips */}
+          {onSendStarter && (
+            <div className="flex flex-wrap items-center justify-center gap-2 max-w-sm">
+              {chat.type === 'bot' ? (
+                <>
+                  <button
+                    onClick={() => onSendStarter('/help')}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#3390ec] text-slate-700 dark:text-slate-200 font-medium transition-all shadow-xs"
+                  >
+                    💡 /help
+                  </button>
+                  <button
+                    onClick={() => onSendStarter('/crypto')}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#3390ec] text-slate-700 dark:text-slate-200 font-medium transition-all shadow-xs"
+                  >
+                    💎 /crypto
+                  </button>
+                  <button
+                    onClick={() => onSendStarter('/roll')}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#3390ec] text-slate-700 dark:text-slate-200 font-medium transition-all shadow-xs"
+                  >
+                    🎲 /roll
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => onSendStarter('👋 Hello!')}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#3390ec] text-slate-700 dark:text-slate-200 font-medium transition-all shadow-xs"
+                  >
+                    👋 Hello!
+                  </button>
+                  <button
+                    onClick={() => onSendStarter('🚀 How are you doing today?')}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#3390ec] text-slate-700 dark:text-slate-200 font-medium transition-all shadow-xs"
+                  >
+                    🚀 How are you doing?
+                  </button>
+                  <button
+                    onClick={() => onSendStarter('✨ Nice to connect with you on Pigeon!')}
+                    className="px-3 py-1.5 rounded-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#3390ec] text-slate-700 dark:text-slate-200 font-medium transition-all shadow-xs"
+                  >
+                    ✨ Nice to connect!
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Date badge */}
-      <div className="flex justify-center my-3 sticky top-2 z-5">
-        <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-500/20 dark:bg-black/30 text-slate-700 dark:text-slate-300 backdrop-blur-xs select-none">
-          Today
-        </span>
-      </div>
+      {filteredMessages.length > 0 && (
+        <div className="flex justify-center my-3 sticky top-2 z-5">
+          <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-500/20 dark:bg-black/30 text-slate-700 dark:text-slate-300 backdrop-blur-xs select-none">
+            Today
+          </span>
+        </div>
+      )}
 
       {filteredMessages.map((msg) => {
         const isOutgoing = msg.isOutgoing;

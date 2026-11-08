@@ -1,18 +1,20 @@
 import React from 'react';
 import { Chat } from '../../types/telegram';
 import { formatChatTimestamp } from '../../utils/telegramLogic';
-import { Check, CheckCheck, Pin, VolumeX, Bookmark, ShieldCheck, Bot, Users } from 'lucide-react';
+import { Check, CheckCheck, Pin, VolumeX, Bookmark, ShieldCheck, Bot, Users, Trash2 } from 'lucide-react';
 
 interface ChatListProps {
   chats: Chat[];
   activeChatId: string | null;
   onSelectChat: (chatId: string) => void;
+  onDeleteChat?: (chatId: string) => void;
 }
 
 export const ChatList: React.FC<ChatListProps> = ({
   chats,
   activeChatId,
   onSelectChat,
+  onDeleteChat,
 }) => {
   if (chats.length === 0) {
     return (
@@ -52,10 +54,18 @@ export const ChatList: React.FC<ChatListProps> = ({
         const isSaved = chat.id === 'chat-saved';
 
         return (
-          <button
+          <div
             key={chat.id}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelectChat(chat.id)}
-            className={`w-full text-left p-3 flex items-center gap-3 transition-colors relative select-none ${
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelectChat(chat.id);
+              }
+            }}
+            className={`w-full text-left p-3 flex items-center gap-3 transition-colors relative select-none cursor-pointer group ${
               isActive
                 ? 'bg-[#3390ec] text-white dark:bg-[#2b5278]'
                 : 'hover:bg-slate-100/80 dark:hover:bg-[#202b36] text-slate-900 dark:text-slate-100'
@@ -176,6 +186,25 @@ export const ChatList: React.FC<ChatListProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
+                  {onDeleteChat && chat.id !== 'chat-saved' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteChat(chat.id);
+                      }}
+                      title="Delete chat"
+                      aria-label="Delete chat"
+                      className={`p-1 rounded-md opacity-0 group-hover:opacity-100 hover:scale-110 transition-all ${
+                        isActive
+                          ? 'text-white/80 hover:text-white hover:bg-white/20'
+                          : 'text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                      }`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
                   {chat.pinned && (
                     <Pin
                       className={`w-3.5 h-3.5 rotate-45 ${
@@ -202,7 +231,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                 </div>
               </div>
             </div>
-          </button>
+          </div>
         );
       })}
     </div>

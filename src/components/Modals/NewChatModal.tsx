@@ -38,9 +38,9 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
       bio: bio.trim() || undefined,
       onlineStatus:
         chatType === 'group'
-          ? '1 member'
+          ? 'group'
           : chatType === 'channel'
-          ? '1 subscriber'
+          ? 'channel'
           : 'online',
       isOnline: chatType === 'personal',
       lastMessage: {

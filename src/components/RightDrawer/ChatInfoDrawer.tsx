@@ -12,6 +12,7 @@ import {
   Bookmark,
   Bot,
   Users,
+  Trash2,
 } from 'lucide-react';
 
 interface ChatInfoDrawerProps {
@@ -20,6 +21,8 @@ interface ChatInfoDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onToggleMute: (chatId: string) => void;
+  onClearChat?: (chatId: string) => void;
+  onDeleteChat?: (chatId: string) => void;
 }
 
 export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({
@@ -28,10 +31,14 @@ export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({
   isOpen,
   onClose,
   onToggleMute,
+  onClearChat,
+  onDeleteChat,
 }) => {
   if (!isOpen) return null;
 
   const [activeMediaTab, setActiveMediaTab] = useState<'media' | 'files' | 'audio' | 'links'>('media');
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   // Extract shared media from current chat messages
   const mediaItems = messages.filter((m) => m.mediaType === 'image' && m.mediaUrl);
@@ -92,8 +99,21 @@ export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({
             )}
           </div>
 
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {chat.onlineStatus || 'Offline'}
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 capitalize">
+            {(() => {
+              if (chat.type === 'channel') return 'channel';
+              if (chat.type === 'group') return 'group';
+              if (chat.type === 'bot') return 'bot';
+              if (chat.isOnline) return 'online';
+              if (
+                chat.onlineStatus &&
+                !chat.onlineStatus.toLowerCase().includes('subscriber') &&
+                !chat.onlineStatus.toLowerCase().includes('member')
+              ) {
+                return chat.onlineStatus;
+              }
+              return 'offline';
+            })()}
           </p>
         </div>
 
@@ -242,6 +262,84 @@ export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({
               )
             )}
           </div>
+        </div>
+
+        {/* Clear & Delete Chat Action Buttons */}
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800/60 space-y-2">
+          {onClearChat && (
+            <div>
+              {showConfirmClear ? (
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-center space-y-2">
+                  <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    Clear all messages in this chat?
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => {
+                        onClearChat(chat.id);
+                        setShowConfirmClear(false);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors"
+                    >
+                      Yes, Clear
+                    </button>
+                    <button
+                      onClick={() => setShowConfirmClear(false)}
+                      className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowConfirmClear(true)}
+                  className="w-full py-2 px-3 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4 text-amber-500" />
+                  <span>Clear Chat History</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {onDeleteChat && chat.id !== 'chat-saved' && (
+            <div>
+              {showConfirmDelete ? (
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-center space-y-2">
+                  <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                    Delete this conversation completely?
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => {
+                        onDeleteChat(chat.id);
+                        setShowConfirmDelete(false);
+                        onClose();
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors"
+                    >
+                      Yes, Delete
+                    </button>
+                    <button
+                      onClick={() => setShowConfirmDelete(false)}
+                      className="px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowConfirmDelete(true)}
+                  className="w-full py-2 px-3 rounded-xl border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4 text-rose-500" />
+                  <span>Delete Chat</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
